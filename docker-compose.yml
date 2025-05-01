@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo:4.4-bionic
+    container_name: mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    mem_limit: 128m
+    ports:
+      - "27017:27017"
+
+  procurement-platform:
+    image: nhsl/procurement-platform:latest
+    container_name: procurement-platform
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://admin:password@mongodb:27017/procurement?authSource=admin
+    depends_on:
+      - mongodb
+    mem_limit: 256m
+
+  fraud-detection:
+    image: nhsl/fraud-detection:latest
+    container_name: fraud-detection
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    mem_limit: 256m
+
+  ganache:
+    image: trufflesuite/ganache-cli:latest
+    container_name: ganache
+    ports:
+      - "8545:8545"
+    command: --deterministic --networkId 1337
+    mem_limit: 128m
+
+volumes:
+  mongodb_data:
